@@ -40,6 +40,12 @@ def increase_win_count(winner)
   puts "players wins: #{$player_win}; computer wins: #{$computer_win}"
 end
 
+def reached_5?
+  if $player_win == 5 || $computer_win == 5
+    puts "Game Over!"
+    return true
+  end
+end
 
 def display_results(player, computer)
   if win?(player, computer)
@@ -78,13 +84,15 @@ loop do
 
   display_results(choice, computer_choice)
 
-  if $player_win == 5
-    puts "Player has reached 5 wins!"
-    break
-  elsif $computer_win == 5
-    puts "Computer has reached 5 wins!"
-    break
-  end
+  # if $player_win == 5
+  #   puts "Player has reached 5 wins!"
+  #   break
+  # elsif $computer_win == 5
+  #   puts "Computer has reached 5 wins!"
+  #   break
+  # end
+
+  break if reached_5?
 
   prompt("Do you want to play again?")
   answer = Kernel.gets().chomp()
