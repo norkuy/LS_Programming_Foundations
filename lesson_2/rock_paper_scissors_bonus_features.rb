@@ -2,7 +2,6 @@ VALID_CHOICES = %w(rock paper scissors spock lizard)
 
 scores = { player: 0, computer: 0 }
 
-
 win_combos = [
   ['rock', 'scissors'],
   ['paper', 'rock'],
@@ -16,47 +15,32 @@ win_combos = [
   ['spock', 'rock']
 ]
 
-
 def prompt(message)
-  Kernel.puts("=> #{message}")
+  puts("=> #{message}")
 end
 
-
-def win?(combos, first, second)
-  if first != second 
-    return combos.any? do |combo|
-      combo == [first, second]
-    end 
+def win?(first, second, combos)
+  if combos.include?([first, second])
+    "player"
+  elsif combos.include?([second, first])
+    "computer"
   end
 end
 
-def display_results(first, second, combos = []) 
-    if first == second
-      puts "It's a tie!"
-    elsif win?(combos, first, second)
-      puts "Player won!"
-    elsif win?(combos, first, second) == false
-      puts "Computer won!"
-    end
+def display_results(winner)
+  if winner == "player"
+    puts "Player won!"
+  elsif winner == "computer"
+    puts "Computer won!"
+  else
+    puts "It's a tie"
+  end
 end
 
-  # (first == 'rock' && second == 'scissors') ||
-  #   (first == 'paper' && second == 'rock') ||
-  #   (first == 'scissors' && second == 'paper') ||
-  #   (first == 'rock' && second == 'lizard') ||
-  #   (first == 'lizard' && second == 'spock') ||
-  #   (first == 'spock' && second == 'scissors') ||
-  #   (first == 'scissors' && second == 'lizard') ||
-  #   (first == 'lizard' && second == 'paper') ||
-  #   (first == 'paper' && second == 'spock') ||
-  #   (first == 'spock' && second == 'rock')
-
-
-
-def win_counter(player, computer, scores, combos = [])
-  if win?(combos, player, computer)
+def win_counter(scores, winner)
+  if winner == "player"
     scores[:player] = scores[:player] + 1
-  elsif win?(combos, player, computer) == false
+  elsif winner == "computer"
     scores[:computer] = scores[:computer] + 1
   end
   puts "player wins: #{scores[:player]}; computer wins: #{scores[:computer]}"
@@ -95,10 +79,10 @@ loop do
   computer_choice = VALID_CHOICES.sample
   Kernel.puts("You chose: #{choice}; Computer chose #{computer_choice}")
 
-  display_results(choice, computer_choice, win_combos)
+  winner = win?(choice, computer_choice, win_combos)
+  display_results(winner)
 
-  win_counter(choice, computer_choice, scores, win_combos)
-  
+  win_counter(scores, winner)
   break if reached_5?(scores)
 
   prompt("Do you want to play again?")
