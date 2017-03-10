@@ -1,71 +1,84 @@
 VALID_CHOICES = %w(rock paper scissors spock lizard)
-$player_win = 0
-$computer_win = 0
 
-def test_method
-  prompt('test message')
-end
+scores = { player: 0, computer: 0 }
 
-# test_method is beginning called before prompt is defined
-# an error will be raised.
 
-# test_method
+win_combos = [
+  ['rock', 'scissors'],
+  ['paper', 'rock'],
+  ['scissors', 'paper'],
+  ['rock', 'lizard'],
+  ['lizard', 'spock'],
+  ['spock', 'scissors'],
+  ['scissors', 'lizard'],
+  ['lizard', 'paper'],
+  ['paper', 'spock'],
+  ['spock', 'rock']
+]
+
 
 def prompt(message)
   Kernel.puts("=> #{message}")
 end
 
-# test_method is will run in this scenario
-# test_method
 
-def win?(first, second)
-  (first == 'rock' && second == 'scissors') ||
-    (first == 'paper' && second == 'rock') ||
-    (first == 'scissors' && second == 'paper') ||
-    (first == 'rock' && second == 'lizard') ||
-    (first == 'lizard' && second == 'spock') ||
-    (first == 'spock' && second == 'scissors') ||
-    (first == 'scissors' && second == 'lizard') ||
-    (first == 'lizard' && second == 'paper') ||
-    (first == 'paper' && second == 'spock') ||
-    (first == 'spock' && second == 'rock') 
-end
-
-def increase_win_count(winner)
-  if winner == 'player'
-    $player_win = $player_win + 1
-  else
-    $computer_win = $computer_win + 1
-  end
-  puts "players wins: #{$player_win}; computer wins: #{$computer_win}"
-end
-
-def reached_5?
-  if $player_win == 5 || $computer_win == 5
-    puts "Game Over!"
-    return true
+def win?(combos, first, second)
+  if first != second 
+    return combos.any? do |combo|
+      combo == [first, second]
+    end 
   end
 end
 
-def display_results(player, computer)
-  if win?(player, computer)
-    puts "You won!"
-    increase_win_count('player')
-  elsif win?(computer, player)
-    puts "Computer Won!"
-    increase_win_count('computer')
-  else
-    puts "It's a tie!"
+def display_results(first, second, combos = []) 
+    if first == second
+      puts "It's a tie!"
+    elsif win?(combos, first, second)
+      puts "Player won!"
+    elsif win?(combos, first, second) == false
+      puts "Computer won!"
+    end
+end
+
+  # (first == 'rock' && second == 'scissors') ||
+  #   (first == 'paper' && second == 'rock') ||
+  #   (first == 'scissors' && second == 'paper') ||
+  #   (first == 'rock' && second == 'lizard') ||
+  #   (first == 'lizard' && second == 'spock') ||
+  #   (first == 'spock' && second == 'scissors') ||
+  #   (first == 'scissors' && second == 'lizard') ||
+  #   (first == 'lizard' && second == 'paper') ||
+  #   (first == 'paper' && second == 'spock') ||
+  #   (first == 'spock' && second == 'rock')
+
+
+
+def win_counter(player, computer, scores, combos = [])
+  if win?(combos, player, computer)
+    scores[:player] = scores[:player] + 1
+  elsif win?(combos, player, computer) == false
+    scores[:computer] = scores[:computer] + 1
+  end
+  puts "player wins: #{scores[:player]}; computer wins: #{scores[:computer]}"
+end
+
+def reached_5?(scores)
+  if scores[:player] == 5 || scores[:computer] == 5
+    if scores[:player] == 5
+      puts "Player has reached 5 wins!"
+    elsif scores[:computer] == 5
+      puts "Computer has reached 5 wins!"
+    end
+    true
   end
 end
 
 loop do
   choice = ''
-  does_input_match = ''
   loop do
     prompt("Choose one: #{VALID_CHOICES.join(', ')}")
     choice = Kernel.gets().chomp()
-    prompt_matches = VALID_CHOICES.select do |word| 
+    prompt_matches = VALID_CHOICES.select do |word|
       word.start_with?(choice)
     end
     if VALID_CHOICES.include?(choice)
@@ -74,7 +87,7 @@ loop do
       choice = prompt_matches[0]
       break
     elsif prompt_matches.length > 1
-      prompt("More than one choice includes your selection")
+      prompt("Please be more specific")
     else
       prompt("That's not a valid choice")
     end
@@ -82,17 +95,11 @@ loop do
   computer_choice = VALID_CHOICES.sample
   Kernel.puts("You chose: #{choice}; Computer chose #{computer_choice}")
 
-  display_results(choice, computer_choice)
+  display_results(choice, computer_choice, win_combos)
 
-  # if $player_win == 5
-  #   puts "Player has reached 5 wins!"
-  #   break
-  # elsif $computer_win == 5
-  #   puts "Computer has reached 5 wins!"
-  #   break
-  # end
-
-  break if reached_5?
+  win_counter(choice, computer_choice, scores, win_combos)
+  
+  break if reached_5?(scores)
 
   prompt("Do you want to play again?")
   answer = Kernel.gets().chomp()
