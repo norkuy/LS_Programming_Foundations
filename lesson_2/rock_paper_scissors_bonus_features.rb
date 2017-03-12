@@ -19,7 +19,7 @@ def prompt(message)
   puts("=> #{message}")
 end
 
-def win?(first, second, combos)
+def who_won?(first, second, combos)
   if combos.include?([first, second])
     "player"
   elsif combos.include?([second, first])
@@ -29,11 +29,11 @@ end
 
 def display_results(winner)
   if winner == "player"
-    puts "Player won!"
+    prompt("Player won!")
   elsif winner == "computer"
-    puts "Computer won!"
+    prompt("Computer won!")
   else
-    puts "It's a tie"
+    prompt("It's a tie!")
   end
 end
 
@@ -46,14 +46,11 @@ def win_counter(scores, winner)
   puts "player wins: #{scores[:player]}; computer wins: #{scores[:computer]}"
 end
 
-def reached_5?(scores)
-  if scores[:player] == 5 || scores[:computer] == 5
-    if scores[:player] == 5
-      puts "Player has reached 5 wins!"
-    elsif scores[:computer] == 5
-      puts "Computer has reached 5 wins!"
-    end
-    true
+def reached_5_wins?(scores)
+  if scores[:player] == 5
+    "Player has reached 5 wins!"
+  elsif scores[:computer] == 5
+    "Computer has reached 5 wins!"
   end
 end
 
@@ -62,8 +59,8 @@ loop do
   loop do
     prompt("Choose one: #{VALID_CHOICES.join(', ')}")
     choice = Kernel.gets().chomp()
-    prompt_matches = VALID_CHOICES.select do |word|
-      word.start_with?(choice)
+    prompt_matches = VALID_CHOICES.select do |rpxls|
+      rpxls.start_with?(choice)
     end
     if VALID_CHOICES.include?(choice)
       break
@@ -79,11 +76,17 @@ loop do
   computer_choice = VALID_CHOICES.sample
   Kernel.puts("You chose: #{choice}; Computer chose #{computer_choice}")
 
-  winner = win?(choice, computer_choice, win_combos)
+  winner = who_won?(choice, computer_choice, win_combos)
+  
   display_results(winner)
 
   win_counter(scores, winner)
-  break if reached_5?(scores)
+
+  if reached_5_wins?(scores)
+      game_winner = reached_5_wins?(scores)
+      prompt(game_winner)
+      break
+  end
 
   prompt("Do you want to play again?")
   answer = Kernel.gets().chomp()
