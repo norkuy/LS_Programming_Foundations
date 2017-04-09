@@ -1,6 +1,7 @@
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
+FIRST_MOVE = 'CHOOSE'
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
     [[1, 5, 9], [3, 5, 7]]
@@ -113,7 +114,7 @@ def detect_winner(brd)
   nil
 end
 
-def defense_attack!(brd)
+def computer_defense(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(PLAYER_MARKER) == 2
       line.each do |square|
@@ -127,7 +128,7 @@ def defense_attack!(brd)
   nil
 end
 
-def offense_attack!(brd)
+def computer_offense(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(COMPUTER_MARKER) == 2
       line.each do |square|
@@ -141,35 +142,65 @@ def offense_attack!(brd)
   nil
 end
 
-def defence_offense_attack(brd)
-  if offense_attack!(brd)
-    brd[offense_attack!(brd)] = COMPUTER_MARKER
-  elsif defense_attack!(brd)
-    brd[defense_attack!(brd)] = COMPUTER_MARKER
-  elsif !offense_attack!(brd) && !defense_attack!(brd)
+def place_piece!(brd, current_player)
+  if current_player == 'player'
+    player_places_piece!(brd) 
+  elsif current_player == 'computer'
+    computer_places_piece!(brd)
+  end
+end
+
+def computer_pick_center(brd)
+  if brd[5] == INITIAL_MARKER
+    puts "PICKED 5"
+    return 5
+  end
+  nil
+end
+
+def computer_places_piece!(brd)
+  if computer_offense(brd) # if true use square return value
+    brd[computer_offense(brd)] = COMPUTER_MARKER
+  elsif computer_defense(brd)
+    brd[computer_defense(brd)] = COMPUTER_MARKER
+  elsif computer_pick_center(brd)
+    brd[computer_pick_center(brd)] = COMPUTER_MARKER
+  else
     computer_random_piece!(brd)
   end
 end
 
-loop do
+def first_player_to_move
+  selection = ''
+  if FIRST_MOVE == 'CHOOSE'
+    loop do
+    prompt "'computer' or 'player' goes first until 5 wins. Or 'q' to quit program"
+    selection = gets.chomp.downcase
+    break if selection == 'computer' || selection == 'player' || selection == 'q'
+    end
+    selection
+  elsif FIRST_MOVE == 'COMPUTER'
+    'computer'
+  elsif FIRST_MOVE == 'PLAYER'
+    'player'
+  end
+end
 
+loop do
 scores = { player: 0, computer: 0 }
-
+current_player = first_player_to_move
+break if current_player == 'q'
 loop do
-  
   board = initialize_board
+
   loop do
     display_board(board, scores)
-
-    player_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
-    defence_offense_attack(board)
-    # computer_places_piece!(board)
+    place_piece!(board, current_player)    
+    current_player == 'player' ? current_player = 'computer' : current_player = 'player' 
     break if someone_won?(board) || board_full?(board)
   end
 
   win_counter(detect_winner(board), scores)
-  
   display_board(board, scores)
 
   if someone_won?(board)
@@ -188,11 +219,12 @@ loop do
 
   prompt "Play again? (y or n)"
   answer = gets.chomp
-
   break unless answer.downcase.start_with?('y')
 end
 
 end
+
+
 
 prompt "Thanks for playing Tic Tac Toe Goodbye!"
 
