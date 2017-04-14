@@ -1,7 +1,7 @@
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
-FIRST_MOVE = 'choose'
+FIRST_MOVE = 'computer'
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                 [[1, 5, 9], [3, 5, 7]]
@@ -188,6 +188,7 @@ def first_player_to_move
 end
 
 loop do
+  answer = ''
   scores = { player: 0, computer: 0 }
   prompt_who_goes_first = first_player_to_move
   break if prompt_who_goes_first == 'q'
@@ -218,9 +219,16 @@ loop do
       break
     end
 
-    prompt "Play again? (y or n)"
+    prompt "Play another round? (y or n)"
     answer = gets.chomp
     break unless answer.downcase.start_with?('y')
+  end
+  if FIRST_MOVE != 'choose' && answer.downcase != 'n'
+    prompt "Play another 5 games?"
+    result = gets.chomp.downcase
+    break unless result.downcase.start_with?('y')
+  elsif FIRST_MOVE != 'choose'
+    break
   end
 end
 
