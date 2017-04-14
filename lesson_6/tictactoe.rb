@@ -1,10 +1,10 @@
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
-FIRST_MOVE = 'CHOOSE'
+FIRST_MOVE = 'choose'
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
-  [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
-    [[1, 5, 9], [3, 5, 7]]
+                [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
+                [[1, 5, 9], [3, 5, 7]]
 
 def prompt(msg)
   puts "=> #{msg}"
@@ -51,17 +51,16 @@ def pick_connectors!(delimiter, join_word)
 end
 
 def joinor(open_spaces, delimiter = '', join_word = '')
-
   pick_connectors!(delimiter, join_word)
 
   if open_spaces.count > 2
-      open_spaces.map.with_index do |num, index|
-        if index < open_spaces.size - 1
-          "#{num}#{delimiter} "
-        else
-          "#{join_word} #{num}"
-        end
-      end.join
+    open_spaces.map.with_index do |num, index|
+      if index < open_spaces.size - 1
+        "#{num}#{delimiter} "
+      else
+        "#{join_word} #{num}"
+      end
+    end.join
   elsif open_spaces.count == 2
     open_spaces.join(" #{join_word} ")
   elsif open_spaces.count == 1
@@ -114,37 +113,38 @@ def detect_winner(brd)
   nil
 end
 
-def computer_defense(brd)
+def computer_offense_defense(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(PLAYER_MARKER) == 2
       line.each do |square|
-        if brd[square] == INITIAL_MARKER
-        puts "DEFENSIVE"
-        return square
-        end
+        return square if brd[square] == INITIAL_MARKER
       end
-    end 
+    elsif brd.values_at(*line).count(COMPUTER_MARKER) == 2
+      line.each do |square|
+        return square if brd[square] == INITIAL_MARKER
+      end
+    end
   end
   nil
 end
 
-def computer_offense(brd)
-  WINNING_LINES.each do |line|
-    if brd.values_at(*line).count(COMPUTER_MARKER) == 2
-      line.each do |square|
-        if brd[square] == INITIAL_MARKER
-          puts "OFFENSIVE"
-          return square
-        end
-      end
-    end 
-  end
-  nil
-end
+# def computer_offense(brd)
+#   WINNING_LINES.each do |line|
+#     if brd.values_at(*line).count(COMPUTER_MARKER) == 2
+#       line.each do |square|
+#         if brd[square] == INITIAL_MARKER
+#           puts "OFFENSIVE"
+#           return square
+#         end
+#       end
+#     end
+#   end
+#   nil
+# end
 
 def place_piece!(brd, current_player)
   if current_player == 'player'
-    player_places_piece!(brd) 
+    player_places_piece!(brd)
   elsif current_player == 'computer'
     computer_places_piece!(brd)
   end
@@ -159,10 +159,8 @@ def computer_pick_center(brd)
 end
 
 def computer_places_piece!(brd)
-  if computer_offense(brd) # if true use square return value
-    brd[computer_offense(brd)] = COMPUTER_MARKER
-  elsif computer_defense(brd)
-    brd[computer_defense(brd)] = COMPUTER_MARKER
+  if computer_offense_defense(brd) # if true use square return value
+    brd[computer_offense_defense(brd)] = COMPUTER_MARKER
   elsif computer_pick_center(brd)
     brd[computer_pick_center(brd)] = COMPUTER_MARKER
   else
@@ -170,61 +168,60 @@ def computer_places_piece!(brd)
   end
 end
 
+def who_goes_first?
+  choice = ''
+  loop do
+    prompt "'computer' goes first, 'player' goes first, or (q)uit"
+    choice = gets.chomp.downcase
+    break if choice == 'computer' || choice == 'player' || choice == 'q'
+  end
+  choice
+end
+
 def first_player_to_move
-  selection = ''
-  if FIRST_MOVE == 'CHOOSE'
-    loop do
-    prompt "'computer' or 'player' goes first until 5 wins. Or 'q' to quit program"
-    selection = gets.chomp.downcase
-    break if selection == 'computer' || selection == 'player' || selection == 'q'
-    end
-    selection
-  elsif FIRST_MOVE == 'COMPUTER'
+  return who_goes_first? if FIRST_MOVE == 'choose'
+  if FIRST_MOVE == 'computer'
     'computer'
-  elsif FIRST_MOVE == 'PLAYER'
+  elsif FIRST_MOVE == 'player'
     'player'
   end
 end
 
 loop do
-scores = { player: 0, computer: 0 }
-current_player = first_player_to_move
-break if current_player == 'q'
-loop do
-  board = initialize_board
-
+  scores = { player: 0, computer: 0 }
+  prompt_who_goes_first = first_player_to_move
+  break if prompt_who_goes_first == 'q'
   loop do
+    board = initialize_board
+    next_to_go = prompt_who_goes_first
+    loop do
+      display_board(board, scores)
+      place_piece!(board, next_to_go)
+      next_to_go == 'player' ? next_to_go = 'computer' : next_to_go = 'player'
+      break if someone_won?(board) || board_full?(board)
+    end
+
+    win_counter(detect_winner(board), scores)
     display_board(board, scores)
-    place_piece!(board, current_player)    
-    current_player == 'player' ? current_player = 'computer' : current_player = 'player' 
-    break if someone_won?(board) || board_full?(board)
+
+    if someone_won?(board)
+      prompt "#{detect_winner(board)} won!"
+    else
+      prompt "It's a tie!"
+    end
+
+    if scores[:player] == 5
+      prompt "Player has reached 5 wins!"
+      break
+    elsif scores[:computer] == 5
+      prompt "Computer has reached 5 wins!"
+      break
+    end
+
+    prompt "Play again? (y or n)"
+    answer = gets.chomp
+    break unless answer.downcase.start_with?('y')
   end
-
-  win_counter(detect_winner(board), scores)
-  display_board(board, scores)
-
-  if someone_won?(board)
-    prompt "#{detect_winner(board)} won!"
-  else
-    prompt "It's a tie!"
-  end
-
-  if scores[:player] == 5
-    prompt "Player has reached 5 wins!"
-    break
-  elsif scores[:computer] == 5
-    prompt "Computer has reached 5 wins!"
-    break
-  end
-
-  prompt "Play again? (y or n)"
-  answer = gets.chomp
-  break unless answer.downcase.start_with?('y')
 end
-
-end
-
-
 
 prompt "Thanks for playing Tic Tac Toe Goodbye!"
-
