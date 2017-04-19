@@ -1,7 +1,7 @@
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
-FIRST_MOVE = 'computer'
+FIRST_MOVE = 'choose'
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                 [[1, 5, 9], [3, 5, 7]]
@@ -12,7 +12,7 @@ end
 
 # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
 def display_board(brd, scores)
-  # system 'clear'
+  system 'clear'
   puts "Player Wins: #{scores[:player]} Computer Wins: #{scores[:computer]}"
   puts "You're #{PLAYER_MARKER} Computer is #{COMPUTER_MARKER}"
   puts ""
@@ -79,10 +79,8 @@ def player_places_piece!(brd)
   brd[square] = PLAYER_MARKER
 end
 
-def computer_random_piece!(brd)
-  square = empty_squares(brd).sample
-  brd[square] = COMPUTER_MARKER
-  puts "RANDOM"
+def computer_random_piece(brd)
+  empty_squares(brd).sample
 end
 
 def board_full?(brd)
@@ -113,34 +111,17 @@ def detect_winner(brd)
   nil
 end
 
-def computer_offense_defense(brd)
+def find_at_risk_square(brd, marker)
   WINNING_LINES.each do |line|
-    if brd.values_at(*line).count(PLAYER_MARKER) == 2
+   if brd.values_at(*line).count(marker) == 2
       line.each do |square|
-        return square if brd[square] == INITIAL_MARKER
-      end
-    elsif brd.values_at(*line).count(COMPUTER_MARKER) == 2
-      line.each do |square|
+        puts "DEFEND"
         return square if brd[square] == INITIAL_MARKER
       end
     end
   end
   nil
 end
-
-# def computer_offense(brd)
-#   WINNING_LINES.each do |line|
-#     if brd.values_at(*line).count(COMPUTER_MARKER) == 2
-#       line.each do |square|
-#         if brd[square] == INITIAL_MARKER
-#           puts "OFFENSIVE"
-#           return square
-#         end
-#       end
-#     end
-#   end
-#   nil
-# end
 
 def place_piece!(brd, current_player)
   if current_player == 'player'
@@ -159,13 +140,12 @@ def computer_pick_center(brd)
 end
 
 def computer_places_piece!(brd)
-  if computer_offense_defense(brd) # if true use square return value
-    brd[computer_offense_defense(brd)] = COMPUTER_MARKER
-  elsif computer_pick_center(brd)
-    brd[computer_pick_center(brd)] = COMPUTER_MARKER
-  else
-    computer_random_piece!(brd)
-  end
+  square = find_at_risk_square(brd, COMPUTER_MARKER)
+  square = find_at_risk_square(brd, PLAYER_MARKER) unless square
+  square = computer_pick_center(brd) unless square
+  square = computer_random_piece(brd) unless square
+
+  brd[square] = COMPUTER_MARKER
 end
 
 def who_goes_first?
@@ -223,13 +203,7 @@ loop do
     answer = gets.chomp
     break unless answer.downcase.start_with?('y')
   end
-  if FIRST_MOVE != 'choose' && answer.downcase != 'n'
-    prompt "Play another 5 games?"
-    result = gets.chomp.downcase
-    break unless result.downcase.start_with?('y')
-  elsif FIRST_MOVE != 'choose'
-    break
-  end
+    break unless answer.downcase.start_with?('y')
 end
 
 prompt "Thanks for playing Tic Tac Toe Goodbye!"
