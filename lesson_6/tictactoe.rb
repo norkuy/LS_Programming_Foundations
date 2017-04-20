@@ -212,11 +212,10 @@ loop do
   break unless answer.downcase.start_with?('y')
 
   if winner && FIRST_MOVE != 'choose'
-    prompt "Play another 5 games?" 
+    prompt "Play another 5 games?"
     play_again = gets.chomp
     break unless play_again.downcase.start_with?('y')
   end
-  
 end
 
 prompt "Thanks for playing Tic Tac Toe Goodbye!"
