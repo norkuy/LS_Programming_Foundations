@@ -1,7 +1,7 @@
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
-FIRST_MOVE = 'choose'
+FIRST_MOVE = 'computer'
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                 [[1, 5, 9], [3, 5, 7]]
@@ -12,7 +12,7 @@ end
 
 # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
 def display_board(brd, scores)
-  # system 'clear'
+  system 'clear'
   puts "Player Wins: #{scores[:player]} Computer Wins: #{scores[:computer]}"
   puts "You're #{PLAYER_MARKER} Computer is #{COMPUTER_MARKER}"
   puts ""
@@ -171,6 +171,7 @@ end
 
 loop do
   answer = ''
+  winner = false
   scores = { player: 0, computer: 0 }
   prompt_who_goes_first = first_player_to_move
   break if prompt_who_goes_first == 'q'
@@ -195,9 +196,11 @@ loop do
 
     if scores[:player] == 5
       prompt "Player has reached 5 wins!"
+      winner = true
       break
     elsif scores[:computer] == 5
       prompt "Computer has reached 5 wins!"
+      winner = true
       break
     end
 
@@ -205,7 +208,15 @@ loop do
     answer = gets.chomp
     break unless answer.downcase.start_with?('y')
   end
+
   break unless answer.downcase.start_with?('y')
+
+  if winner && FIRST_MOVE != 'choose'
+    prompt "Play another 5 games?" 
+    play_again = gets.chomp
+    break unless play_again.downcase.start_with?('y')
+  end
+  
 end
 
 prompt "Thanks for playing Tic Tac Toe Goodbye!"
