@@ -171,11 +171,12 @@ end
 
 loop do
   answer = ''
-  winner = false
+  winner = ''
   scores = { player: 0, computer: 0 }
   prompt_who_goes_first = first_player_to_move
   break if prompt_who_goes_first == 'q'
   loop do
+    winner = false
     board = initialize_board
     next_to_go = prompt_who_goes_first
     loop do
