@@ -88,12 +88,11 @@ def board_full?(brd)
 end
 
 def win_counter(winner, scores)
-  if winner == 'Player'
+  if winner == :player
     scores[:player] += 1
-  elsif winner == 'Computer'
+  elsif winner == :computer
     scores[:computer] += 1
   end
-  scores
 end
 
 def someone_won?(brd)
@@ -103,9 +102,9 @@ end
 def detect_winner(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(PLAYER_MARKER) == 3
-      return 'Player'
+      return :player
     elsif brd.values_at(*line).count(COMPUTER_MARKER) == 3
-      return 'Computer'
+      return :computer
     end
   end
   nil
@@ -123,9 +122,9 @@ def find_at_risk_square(brd, marker)
 end
 
 def place_piece!(brd, current_player)
-  if current_player == 'player'
+  if current_player == :player
     player_places_piece!(brd)
-  elsif current_player == 'computer'
+  elsif current_player == :computer
     computer_places_piece!(brd)
   end
 end
@@ -150,7 +149,7 @@ def computer_places_piece!(brd)
   brd[square] = COMPUTER_MARKER
 end
 
-def who_goes_first?
+def who_goes_first
   choice = ''
   loop do
     prompt "'computer' goes first, 'player' goes first, or (q)uit"
@@ -161,11 +160,11 @@ def who_goes_first?
 end
 
 def first_player_to_move
-  return who_goes_first? if FIRST_MOVE == 'choose'
+  return who_goes_first if FIRST_MOVE == 'choose'
   if FIRST_MOVE == 'computer'
-    'computer'
+    :computer
   elsif FIRST_MOVE == 'player'
-    'player'
+    :player
   end
 end
 
@@ -173,16 +172,16 @@ loop do
   answer = ''
   winner = ''
   scores = { player: 0, computer: 0 }
-  prompt_who_goes_first = first_player_to_move
-  break if prompt_who_goes_first == 'q'
+  round_starter = first_player_to_move
+  break if round_starter == 'q'
   loop do
     winner = false
     board = initialize_board
-    next_to_go = prompt_who_goes_first
+    next_to_go = round_starter
     loop do
       display_board(board, scores)
       place_piece!(board, next_to_go)
-      next_to_go == 'player' ? next_to_go = 'computer' : next_to_go = 'player'
+      next_to_go == :player ? next_to_go = :computer : next_to_go = :player
       break if someone_won?(board) || board_full?(board)
     end
 
