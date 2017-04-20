@@ -12,7 +12,7 @@ end
 
 # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
 def display_board(brd, scores)
-  system 'clear'
+  # system 'clear'
   puts "Player Wins: #{scores[:player]} Computer Wins: #{scores[:computer]}"
   puts "You're #{PLAYER_MARKER} Computer is #{COMPUTER_MARKER}"
   puts ""
@@ -113,9 +113,8 @@ end
 
 def find_at_risk_square(brd, marker)
   WINNING_LINES.each do |line|
-   if brd.values_at(*line).count(marker) == 2
+    if brd.values_at(*line).count(marker) == 2
       line.each do |square|
-        puts "DEFEND"
         return square if brd[square] == INITIAL_MARKER
       end
     end
@@ -133,18 +132,21 @@ end
 
 def computer_pick_center(brd)
   if brd[5] == INITIAL_MARKER
-    puts "PICKED 5"
     return 5
   end
   nil
 end
 
 def computer_places_piece!(brd)
-  square = find_at_risk_square(brd, COMPUTER_MARKER)
-  square = find_at_risk_square(brd, PLAYER_MARKER) unless square
-  square = computer_pick_center(brd) unless square
-  square = computer_random_piece(brd) unless square
-
+  square = if find_at_risk_square(brd, COMPUTER_MARKER)
+             find_at_risk_square(brd, COMPUTER_MARKER)
+           elsif find_at_risk_square(brd, PLAYER_MARKER)
+             find_at_risk_square(brd, PLAYER_MARKER)
+           elsif computer_pick_center(brd)
+             computer_pick_center(brd)
+           else
+             computer_random_piece(brd)
+           end
   brd[square] = COMPUTER_MARKER
 end
 
@@ -203,7 +205,7 @@ loop do
     answer = gets.chomp
     break unless answer.downcase.start_with?('y')
   end
-    break unless answer.downcase.start_with?('y')
+  break unless answer.downcase.start_with?('y')
 end
 
 prompt "Thanks for playing Tic Tac Toe Goodbye!"
