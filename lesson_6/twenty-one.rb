@@ -5,37 +5,43 @@ def init_deck
   special_cards = ['J', 'Q', 'K', 'A']
   (0..12).each do |card|
     if card >= 9
-      deck[card] = [special_cards[j], ['H', 'D', 'C', 'S']]
+      deck[card] = [special_cards[j], ["\u2665", "\u2666", "\u2663", "\u2660"]]
       j += 1
     else   
-      deck[card] = [i+=1, ['H', 'D', 'C', 'S']]
+      deck[card] = [i += 1, ["\u2665", "\u2666", "\u2663", "\u2660"]]
     end
   end
   deck
 end
 
+
 def total(player_or_dealer)
   total = 0
 
- 
-sorted = player_or_dealer.sort_by do |k, v|
-  if v[0] == 'A'
-    1
-  else
-    -1
-  end
-end
 
-sorted.to_h.each do |k, v|
+
+# sorted = player_or_dealer.sort_by do |k, v|
+#       if v[0] == 'A'
+#         1
+#       else
+#         -1
+#       end
+#     end
+
+# sorted.each do |k, v|
+#   if 
+# end
+
+player_or_dealer.each do |_, v|
   card_val = v[0]
-  if card_val == 'J' || card_val == 'Q' || card_val == 'K'
-    card_val = 10
-  elsif card_val == 'A'
+  if card_val == 'A'
     card_val = calculate_ace(total)
+  elsif card_val == 'J' || card_val == 'Q' || card_val == 'K'
+    card_val = 10
   end
-total += card_val
-end
-total
+  total += card_val
+  end
+  total
 end
 
 def calculate_ace(total)
@@ -65,13 +71,13 @@ def busted?(cards)
   total(cards) > 21
 end
 
-def update_screen(players_cards, dealers_cards, starter_deck)
+def update_screen(players_cards, dealers_cards, total)
   system 'clear'
   puts "Computer: #{dealers_cards}"
-  puts "Player: #{players_cards}"
+  puts "Player: #{players_cards} Total: #{total(players_cards)}"
   puts '(h)it or (s)tay'
-  p starter_deck
 end
+
 
 loop do
   players_cards = {}
@@ -79,19 +85,26 @@ loop do
   player_index = 1
   dealer_index = 1
   starter_deck = init_deck
-  players_cards[player_index] = pick_card(starter_deck)
-  dealers_cards[dealer_index] = pick_card(starter_deck)
-  dealers_cards[dealer_index += 1] = pick_card(starter_deck)
+  players_cards["Card #{player_index}"] = pick_card(starter_deck)
+  dealers_cards["Card #{dealer_index}"] = pick_card(starter_deck)
+  dealers_cards["Card #{dealer_index += 1}"] = pick_card(starter_deck)
   loop do
     update_screen(players_cards, dealers_cards, starter_deck)
-    puts total(players_cards)
     answer = gets.chomp
 
     if answer == 'hit'
-      players_cards[player_index += 1] = pick_card(starter_deck)
+      players_cards["Card #{player_index += 1}"] = pick_card(starter_deck)
     end
-
-    break if answer == 'stay' || busted?(players_cards)
+    
+    if answer == 'stay'
+      puts "Player stays with a total of #{total(players_cards)}"
+    elsif busted?(players_cards)
+      puts "Player busted with #{total(players_cards)}! Dealer wins!"
+      puts "Play another game? (y/n)"
+      play_again = gets.chomp.downcase
+      break if play_again.start_with?('y')
+    end   
   end
+
 end
 puts "player busted"
