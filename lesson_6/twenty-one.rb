@@ -46,11 +46,15 @@ end
 def pick_card(deck)
   remove_cards(deck)
 
-  card = deck.sample
-  number = card[0] if card[1].any?
-  suites = deck[deck.index(card)][1].delete(card[1].sample)
+  loop do
+    card = deck.sample
+    break if card[1].any?
+  end
+
+  number = card[0]
+  suits = deck[deck.index(card)][1].delete(card[1].sample)
   
-  [number, suites]
+  [number, suits]
 end
 
 
