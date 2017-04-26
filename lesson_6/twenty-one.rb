@@ -45,7 +45,7 @@ end
 
 def pick_card(deck)
   remove_cards(deck)
-
+  card = ''
   loop do
     card = deck.sample
     break if card[1].any?
