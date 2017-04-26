@@ -47,10 +47,10 @@ def pick_card(deck)
   remove_cards(deck)
 
   card = deck.sample
-  number = card[0]
-  suite = deck[deck.index(card)][1].delete(card[1].sample)
+  number = card[0] if card[1].any?
+  suites = deck[deck.index(card)][1].delete(card[1].sample)
   
-  [number, suite]
+  [number, suites]
 end
 
 
@@ -69,46 +69,89 @@ def busted?(cards)
   total(cards) > 21
 end
 
-def update_screen(players_cards, dealers_cards, total)
+def update_screen(players_cards, dealers_cards, message, show_cards)
   system 'clear'
-  puts "Computer: #{dealers_cards}"
+  if show_cards
+    puts "Computer: #{dealers_cards}"
+  else   
+    puts "Computer: #{dealers_cards[1]} and unknown card(s)" 
+  end
   puts "Player: #{players_cards} Total: #{total(players_cards)}"
-  puts '(h)it or (s)tay'
+  puts message
 end
 
+def dealer_turn(dealers_cards, deck)     
+  until total(dealers_cards) >= 17 do
+    assign_cards(dealers_cards, deck)
+  end
+end
 
 loop do
+
   play_again = ''
+  bust_or_win = false
+  message = 'Welcome!'
   players_cards = {}
   dealers_cards = {}
-  player_index = 1
-  dealer_index = 1
   deck = init_deck
+
   assign_cards(players_cards, deck)
   assign_cards(dealers_cards, deck)
   assign_cards(dealers_cards, deck)
+
   loop do
-    update_screen(players_cards, dealers_cards, deck)
+
+    update_screen(players_cards, dealers_cards, message, false)
+    puts '(h)it or (s)tay'
     answer = gets.chomp
 
-    players_cards["Card #{player_index += 1}"] = pick_card(deck, player) if answer == 'hit'
-    
-    if answer == 'stay'
-      puts "Player stays with a total of #{total(players_cards)}"
-      until total(dealers_cards) >= 17 do
-        dealers_cards["Card #{dealer_index += 1}"] = pick_card(deck)
-      end
-      puts "Dealer busted with #{total(dealers_cards)}! Player wins!"
-      update_screen(players_cards, dealers_cards, deck)
-    elsif busted?(players_cards)
-      update_screen(players_cards, dealers_cards, deck)
-      puts "Player busted with #{total(players_cards)}! Dealer wins!"
-      puts "Play another game? (y/n)"
-      play_again = gets.chomp.downcase
-      break if play_again.start_with?('y')
-      break if play_again.start_with?('n')
-    end   
+  if answer == 'hit'
+    message = 'Player hits'
+    assign_cards(players_cards, deck)
+  elsif answer == 'stay'
+     break
   end
-  break if play_again.start_with?('n')
+
+  if busted?(players_cards)
+      message = 'Player busted! Dealer wins!'
+      bust_or_win = true
+      break
+  elsif total(players_cards) == 21
+      message = 'Player has 21!'
+      bust_or_win = true
+      break
+  end
 end
+  
+  if !bust_or_win
+  
+  if total(dealers_cards) < 17
+    dealer_turn(dealers_cards, deck) 
+  end
+
+  if busted?(dealers_cards)
+    message = 'Dealer busted! Player wins!' 
+    bust_or_win = true
+  elsif total(dealers_cards) == 21
+    message = 'Dealer has 21!'
+    bust_or_win = true
+  end
+  end
+
+  if !bust_or_win
+  message = 'Player won!' if total(players_cards) > total(dealers_cards)
+  message = 'Dealer won!' if total(dealers_cards) > total(players_cards)
+  message = "It's a tie!" if total(players_cards) == total(dealers_cards)
+  end
+
+  update_screen(players_cards, dealers_cards, message, true)
+
+  puts 'play again?'
+  play_again = gets.chomp.downcase
+  break unless play_again.start_with?('y')
+
+
+end
+
+
 
