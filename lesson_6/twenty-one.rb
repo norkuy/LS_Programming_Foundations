@@ -66,21 +66,20 @@ def busted?(total)
   total > PLAY_UNTIL
 end
 
-def update_screen(players_cards, dealers_cards, scores, show_cards)
-  if show_cards
-    puts "Dealer cards are: #{dealers_cards} Total: #{total(dealers_cards)}"
+def update_screen(p_cards, d_cards, p_total, d_total, show_d_cards)
+  if show_d_cards
+    puts "Dealer cards are: #{d_cards} Total: #{d_total}"
   else
-    puts "Dealer cards are: #{dealers_cards[1]} and unknown card(s)"
+    puts "Dealer cards are: #{d_cards[1]} and unknown card(s)"
   end
-  puts "Player cards are: #{players_cards} Total: #{total(players_cards)}"
-  puts "Player score: #{scores[:player]} Dealer score: #{scores[:dealer]}"
+  puts "Player cards are: #{p_cards} Total: #{p_total}"
   puts "--------------"
 end
 
-def dealer_turn(dealers_cards, deck)
-  until total(dealers_cards) >= HIT_UNTIL
+def dealer_turn(d_cards, deck)
+  until total(d_cards) >= HIT_UNTIL
     puts "Dealer hits"
-    assign_cards(dealers_cards, deck)
+    assign_cards(d_cards, deck)
   end
 end
 
@@ -93,86 +92,89 @@ def win(winner, score)
 end
 
 loop do
-  scores = { :player => 0, :dealer => 0 }
+  score = { player: 0, dealer: 0 }
   loop do
-    players_cards = {}
-    dealers_cards = {}
-    player_total = total(players_cards)
-    dealer_total = total(dealers_cards)
+    p_cards = {}
+    d_cards = {}
+    p_total = total(p_cards)
+    d_total = total(d_cards)
     bust_or_win = false
     deck = init_deck
 
-    assign_cards(players_cards, deck)
-    assign_cards(dealers_cards, deck)
-    assign_cards(dealers_cards, deck)
+    assign_cards(p_cards, deck)
+    assign_cards(d_cards, deck)
+    assign_cards(d_cards, deck)
+    p_total = total(p_cards)
 
     loop do
-      update_screen(players_cards, dealers_cards, scores, false)
+      update_screen(p_cards, d_cards, p_total, d_total, false)
       puts '(h)it or (s)tay'
       answer = gets.chomp
 
       if answer == 'hit'
         puts "Player hits"
-        assign_cards(players_cards, deck)
-        player_total = total(players_cards)
+        assign_cards(p_cards, deck)
+        p_total = total(p_cards)
       elsif answer == 'stay'
         puts "Player stays"
         break
       end
 
-      if busted?(player_total)
+      if busted?(p_total)
         puts "Player busted! Dealer wins!"
         bust_or_win = true
-        win(:dealer, scores)
+        win(:dealer, score)
         break
-      elsif player_total == PLAY_UNTIL
+      elsif p_total == PLAY_UNTIL
         puts "Player has #{PLAY_UNTIL}!"
         bust_or_win = true
-        win(:player, scores)
+        win(:player, score)
         break
       end
     end
     # If player did not bust or reach 21, dealer turn.
     if !bust_or_win
-      if dealer_total < HIT_UNTIL
-        dealer_turn(dealers_cards, deck)
+      if d_total < HIT_UNTIL
+        dealer_turn(d_cards, deck)
       end
-      dealer_total = total(dealers_cards)
+      d_total = total(d_cards)
 
-      if busted?(dealer_total)
+      if busted?(d_total)
         puts "Dealer busted! Player wins!"
         bust_or_win = true
-        win(:player, scores)
-      elsif dealer_total == PLAY_UNTIL
+        win(:player, score)
+      elsif d_total == PLAY_UNTIL
         puts "Dealer has #{PLAY_UNTIL}!"
         bust_or_win = true
-        win(:dealer, scores)
+        win(:dealer, score)
       end
     end
 
     # If Neither player nor dealer busted or reached 21, decide winner
     if !bust_or_win
-      if total(players_cards) > total(dealers_cards)
+      if p_total > d_total
         puts "Player won!"
-        win(:player, scores)
-      elsif total(dealers_cards) > total(players_cards)
+        win(:player, score)
+      elsif d_total > p_total
         puts "Dealer won!"
-        win(:dealer, scores) 
-      elsif total(players_cards) == total(dealers_cards)
-        puts "It's a tie!" 
+        win(:dealer, score)
+      elsif p_total == d_total
+        puts "It's a tie!"
       end
     end
 
-    update_screen(players_cards, dealers_cards, scores, true)
+    update_screen(p_cards, d_cards, p_total, d_total, true)
+    puts "Player: #{score[:player]}, Dealer: #{score[:dealer]}"
 
-    break if scores[:dealer] == 5 || scores[:player] == 5
-    
-      puts 'play again?'
-      play_again = gets.chomp.downcase
+    break if score[:dealer] == 5 || score[:player] == 5
+    puts 'play again?'
+    play_again = gets.chomp.downcase
 
     break unless play_again.start_with?('y')
   end
-   play_again = 'n' if play_again.nil?
-   break if scores[:dealer] == 5 || scores[:player] == 5 || !play_again.start_with?('y') 
+  play_again = 'n' if play_again.nil?
+  if score[:dealer] == 5 || score[:player] == 5 || !play_again.start_with?('y')
+    break
+  end
 end
 puts "Thank you for playing!"
