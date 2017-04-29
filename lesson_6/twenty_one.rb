@@ -182,8 +182,8 @@ loop do
 
     show_cards(p_cards, d_cards, p_total, d_total, true)
     show_score(score)
-    break unless play_again?
     break if score[:dealer] == 5 || score[:player] == 5
+    break unless play_again?
   end
   if score[:dealer] == 5 || score[:player] == 5 || !play_again?
     break
