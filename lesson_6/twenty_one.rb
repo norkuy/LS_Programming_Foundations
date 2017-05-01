@@ -3,30 +3,26 @@ HIT_UNTIL = 17
 
 def init_deck
   deck = []
-  i = 1
-  j = 0
-  special_cards = ['J', 'Q', 'K', 'A']
-  (0..12).each do |card|
-    if card >= 9
-      deck[card] = [special_cards[j], ["♠", "♥", "♦", "♣"]]
-      j += 1
-    else
-      deck[card] = [i += 1, ["♠", "♥", "♦", "♣"]]
+  card_values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 'J', 'Q', 'K', 'A']
+  suits = ["S", "H", "D", "C"]
+    card_values.each do |card|
+      suits.each do |suit|
+        deck << [card, suit]
+      end
     end
-  end
-  deck
+  deck.shuffle
 end
 
 def total(player_or_dealer)
   total = 0
-  player_or_dealer.each do |_, v|
-    card_val = v[0]
-    if card_val == 'A'
-      card_val = calculate_ace(total)
-    elsif card_val == 'J' || card_val == 'Q' || card_val == 'K'
-      card_val = 10
+  player_or_dealer.each do |card|
+    card_value = card[0]
+    if card_value == 'A'
+      card_value = calculate_ace(total)
+    elsif card_value == 'J' || card_value == 'Q' || card_value == 'K'
+      card_value = 10
     end
-    total += card_val
+    total += card_value
   end
   total
 end
@@ -39,27 +35,12 @@ def calculate_ace(total)
   end
 end
 
-def remove_empty_cards(deck)
-  deck.delete_if { |card| card[1].empty? }
-end
-
 def pick_card(deck)
-  card = deck.sample
-  number = card[0]
-  suits = deck[deck.index(card)][1].delete(card[1].sample)
-  remove_empty_cards(deck)
-  [number, suits]
+  deck.pop
 end
 
 def assign_cards(user, deck)
-  index = 1
-  loop do
-    if user[index].nil?
-      user[index] = pick_card(deck)
-      break
-    end
-    index += 1
-  end
+  user << pick_card(deck)
 end
 
 def busted?(total)
@@ -83,11 +64,11 @@ def dealer_turn(d_cards, deck)
   end
 end
 
-def win(winner, score)
-  if winner == :player
-    score[:player] += 1
+def win_counter(user, scores)
+  if user == :player
+    scores[:player] += 1
   else
-    score[:dealer] += 1
+    scores[:dealer] += 1
   end
 end
 
@@ -97,8 +78,8 @@ def play_again?
   play_again.downcase.start_with?('y')
 end
 
-def show_score(score)
-  prompt "Player: #{score[:player]} Dealer: #{score[:dealer]}"
+def show_scores(scores)
+  prompt "Player: #{scores[:player]} Dealer: #{scores[:dealer]}"
 end
 
 def prompt(msg)
@@ -106,11 +87,11 @@ def prompt(msg)
 end
 
 loop do
-  score = { player: 0, dealer: 0 }
+  scores = { player: 0, dealer: 0 }
   loop do
     # init cards, totals, deck, and assign cards
-    p_cards = {}
-    d_cards = {}
+    p_cards = []
+    d_cards = []
     p_total = 0
     d_total = 0
     deck = init_deck
@@ -135,7 +116,7 @@ loop do
 
       if busted?(p_total)
         prompt "Player busted! Dealer wins!"
-        win(:dealer, score)
+        win_counter(:dealer, scores)
         break
       end
     end
@@ -144,8 +125,8 @@ loop do
       # Calculate dealer total since game is over.
       d_total = total(d_cards)
       show_cards(p_cards, d_cards, p_total, d_total, true)
-      show_score(score)
-      break if score[:dealer] == 5 || score[:player] == 5
+      show_scores(scores)
+      break if scores[:dealer] == 5 || scores[:player] == 5
       play_again? ? next : break
     end
     # Player didn't bust, dealer turn.
@@ -156,36 +137,36 @@ loop do
 
     if busted?(d_total)
       prompt "Dealer busted! Player wins!"
-      win(:player, score)
+      win_counter(:player, scores)
       show_cards(p_cards, d_cards, p_total, d_total, true)
-      show_score(score)
-      break if score[:dealer] == 5 || score[:player] == 5
+      show_scores(scores)
+      break if scores[:dealer] == 5 || scores[:player] == 5
       play_again? ? next : break
     end
 
-    # No bust from player or dealer, decide winner.
+    # No bust from player or dealer, decide win_counterner.
     if p_total == PLAY_UNTIL && d_total != PLAY_UNTIL
       prompt "Player reached #{PLAY_UNTIL}!"
-      win(:player, score)
+      win_counter(:player, scores)
     elsif d_total == PLAY_UNTIL && p_total != PLAY_UNTIL
       prompt "Dealer reached #{PLAY_UNTIL}!"
-      win(:dealer, score)
+      win_counter(:dealer, scores)
     elsif p_total > d_total
       prompt "Player won!"
-      win(:player, score)
+      win_counter(:player, scores)
     elsif d_total > p_total
       prompt "Dealer won!"
-      win(:dealer, score)
+      win_counter(:dealer, scores)
     elsif p_total == d_total
       prompt "It's a tie!"
     end
 
     show_cards(p_cards, d_cards, p_total, d_total, true)
-    show_score(score)
-    break if score[:dealer] == 5 || score[:player] == 5
+    show_scores(scores)
+    break if scores[:dealer] == 5 || scores[:player] == 5
     break unless play_again?
   end
-  if score[:dealer] == 5 || score[:player] == 5 || !play_again?
+  if scores[:dealer] == 5 || scores[:player] == 5 || !play_again?
     break
   end
 end
