@@ -1,5 +1,7 @@
-def rotate_array(arr)
-  new_arr = []
-  first = arr.slice(0, 1)
-  new_arr = arr.slice(1, arr.length) + first
+def rotate(input)
+  new_str = ''
+  first = input.to_s.slice(0,1)
+  new_str = input.to_s.slice(1, input.to_s.length) + first
 end
+
+rotate(50043)
